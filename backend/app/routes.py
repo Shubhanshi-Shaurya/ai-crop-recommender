@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify,Blueprint
 from flask_cors import CORS
 import joblib
 import json
@@ -6,25 +6,70 @@ import pandas as pd
 import numpy as np
 from dotenv import load_dotenv
 import os
-from pipeline.telemetry_fetcher import fetch_live_telemetry
-from pipeline.market_scraper import scrape_live_market_prices
+from app.pipeline.telemetry_fetcher import fetch_live_telemetry
+from app.pipeline.market_scraper import scrape_live_market_prices
 import xgboost as xgb
 import requests
+import jwt
+from functools import wraps
+from . import db
 
 load_dotenv()
 
 # getting api from .env file
 OPENWEATHER_KEY=os.getenv("OPENWEATHER_API_KEY")
 SARVAM_API_KEY=os.getenv("SARVAM_API_KEY")
+SUPABASE_JWT_SECRET = os.getenv('SUPABASE_JWT_SECRET')
 
-app = Flask(__name__)
-CORS(app)
+#app engine blueprint 
+app = Blueprint('main_routes', __name__)
 
 
 # loading trained models 
 MODEL = xgb.XGBRegressor()
 MODEL.load_model("app/models/model_xgboost.json")
 SCALER = joblib.load("app/models/yield_scaler.pkl")
+
+
+# JWT 
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+        auth_header = request.headers.get('Authorization')
+
+        if auth_header and auth_header.startswith('Bearer '):
+            token = auth_header.split(' ')[1]
+
+        if not token:
+            return jsonify({'status': 'error', 'message': 'Authorization token is required.'}), 401
+
+        try:
+            payload = jwt.decode(token, SUPABASE_JWT_SECRET, algorithms=['HS256'], audience='authenticated')
+            user_id = payload.get('sub')
+            user_email = payload.get('email')
+        except Exception as e:
+            return jsonify({'status': 'error', 'message': f'Invalid token: {str(e)}'}), 401
+
+        return f(user_id, user_email, *args, **kwargs)
+    return decorated
+
+#database testing route
+@app.route('/api/db-test', methods=['GET'])
+def db_test():
+    try:
+        result = db.session.execute(db.text('SELECT current_database(), current_user;')).fetchone()
+        return jsonify({
+            'status': 'success',
+            'message': 'Connected to PostgreSQL!',
+            'database': result[0],
+            'user': result[1]
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
 
 
 with open("app/models/feature_layout.json", "r") as f:
@@ -182,6 +227,6 @@ def recommend_crops():
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 400
     
-if __name__ == '__main__':
-    app.run(port=5000, debug=True)
+# if __name__ == '__main__':
+#     app.run(port=5000, debug=True)
 

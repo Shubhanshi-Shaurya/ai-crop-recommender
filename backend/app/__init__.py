@@ -2,18 +2,17 @@ import os
 from flask import Flask
 from flask_cors import CORS
 from dotenv import load_dotenv
-from flask_sqlalchemy import sqlalchemy
+from flask_sqlalchemy import SQLAlchemy
 
 load_dotenv()
 
-db=sqlalchemy()
+db=SQLAlchemy()
 
 load_dotenv()
 
 def create_app():
     """Application factory function to initialize and configure the Flask web server."""
     app = Flask(__name__)
-    
     CORS(app, resources={r"/api/*": {"origins": "*"}}) 
 
     # DATABASE
@@ -33,9 +32,9 @@ def create_app():
         from . import routes
     
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'fallback-secret-key')
-    
-    from app import routes
-    
-    
+
+    from app.routes import app as routes_bp
+    app.register_blueprint(routes_bp)
+
     
     return app
