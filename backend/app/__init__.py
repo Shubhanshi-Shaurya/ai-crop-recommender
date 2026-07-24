@@ -1,3 +1,5 @@
+# flask engine initialisation file
+
 import os
 from flask import Flask
 from flask_cors import CORS
@@ -16,20 +18,22 @@ def create_app():
     CORS(app, resources={r"/api/*": {"origins": "*"}}) 
 
     # DATABASE
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+    db_url = os.getenv('DATABASE_URL')
+    app.config['SQLALCHEMY_DATABASE_URI'] = db_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     db.init_app(app)
 
     with app.app_context():
+        from app.models import RecommendationLog  
         try:
-            db.session.execute(db.text('SELECT 1'))
-            print(" Connected to PostgreSQL database successfully!")
+            db.create_all() 
+            print(" SUCCESS: Connected to PostgreSQL & Synced Tables!", flush=True)
         except Exception as e:
-            print(f" PostgreSQL Connection Failed: {e}")
+            print(f"\n PostgreSQL Connection Error: {e}\n", flush=True)
 
-        # Deferred route imports to prevent circular references
-        from . import routes
+
+        # from . import routes
     
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'fallback-secret-key')
 

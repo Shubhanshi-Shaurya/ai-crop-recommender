@@ -1,4 +1,5 @@
 const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+import { supabase } from '../supabaseClient';
 
 /**
  * Provides language translation metadata matrices dynamically
@@ -13,6 +14,41 @@ export const fetchSupportedLanguages = async () => {
     { code: 'mr-IN', name: 'मराठी (Marathi)' },
     { code: 'bn-IN', name: 'বাংলা (Bengali)' }
   ];
+};
+
+/**
+ * fetching credentials from supabase and sending to database
+ */
+
+export const recommendCrops = async (formData) => {
+  const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  
+  // Get active session token and user info from Supabase
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+  const user = session?.user;
+
+  const payload = {
+    ...formData,
+    user_id: user?.id,
+    user_email: user?.email
+  };
+
+  const response = await fetch(`${BACKEND_URL}/api/recommend-crops`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': token ? `Bearer ${token}` : ''
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Failed to calculate recommendations');
+  }
+
+  return await response.json();
 };
 
 /**

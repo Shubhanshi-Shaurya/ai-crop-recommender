@@ -1,3 +1,5 @@
+# main route file 
+
 from flask import Flask, request, jsonify,Blueprint
 from flask_cors import CORS
 import joblib
@@ -6,13 +8,16 @@ import pandas as pd
 import numpy as np
 from dotenv import load_dotenv
 import os
-from app.pipeline.telemetry_fetcher import fetch_live_telemetry
-from app.pipeline.market_scraper import scrape_live_market_prices
 import xgboost as xgb
 import requests
 import jwt
 from functools import wraps
 from . import db
+
+# importing components 
+from app.pipeline.telemetry_fetcher import fetch_live_telemetry
+from app.pipeline.market_scraper import scrape_live_market_prices
+from app.models import RecommendationLog
 
 load_dotenv()
 
@@ -218,15 +223,45 @@ def recommend_crops():
         for item in ranked_crops:
             item.pop('suitability_index', None)
 
+        best_crop = ranked_crops[0]['crop']
+
+        # sending data to postgres
+        try:
+            log_entry = RecommendationLog(
+                user_id=user_inputs.get('user_id'),
+                user_email=user_inputs.get('user_email'),
+                latitude=float(lat),
+                longitude=float(lng),
+                soil_type=str(selected_soil),
+                past_crop=str(past_crop),
+                recommended_crop=best_crop
+            )
+            db.session.add(log_entry)
+            db.session.commit()
+            print(" SUCCESS: Saved query inputs to PostgreSQL!", flush=True)
+        except Exception as db_err:
+            db.session.rollback()
+            print(f"⚠️ Failed to save query to DB: {db_err}", flush=True)
+
         return jsonify({
             'status': 'success',
-            'most_appropriate_crop': ranked_crops[0]['crop'],
+            'most_appropriate_crop': best_crop,
             'all_crop_rankings': ranked_crops
-        })
+        }),200
     
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 400
     
-# if __name__ == '__main__':
-#     app.run(port=5000, debug=True)
+
+# route to fetch user past history
+@app.route('/api/history', methods=['GET'])
+def get_user_history():
+    try:
+        logs = RecommendationLog.query.order_by(RecommendationLog.created_at.desc()).limit(20).all()
+        return jsonify({
+            'status': 'success',
+            'history': [log.to_dict() for log in logs]
+        }), 200
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
