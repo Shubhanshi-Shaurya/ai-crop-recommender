@@ -2,7 +2,8 @@
 
 To run backend -
 1. cd backend
-2. run -> python app/routes.py
+2. activate virtual environment first
+3. run -> python run.py
 
 To run frontend - 
 1. cd frontend 
