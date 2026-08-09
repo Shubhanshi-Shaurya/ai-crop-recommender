@@ -24,7 +24,7 @@ load_dotenv()
 # getting api from .env file
 OPENWEATHER_KEY=os.getenv("OPENWEATHER_API_KEY")
 SARVAM_API_KEY=os.getenv("SARVAM_API_KEY")
-SUPABASE_JWT_SECRET = os.getenv('SUPABASE_JWT_SECRET')
+# SUPABASE_JWT_SECRET = os.getenv('SUPABASE_JWT_SECRET')
 
 #app engine blueprint 
 app = Blueprint('main_routes', __name__)
@@ -49,14 +49,14 @@ def token_required(f):
         if not token:
             return jsonify({'status': 'error', 'message': 'Authorization token is required.'}), 401
 
-        try:
-            payload = jwt.decode(token, SUPABASE_JWT_SECRET, algorithms=['HS256'], audience='authenticated')
-            user_id = payload.get('sub')
-            user_email = payload.get('email')
-        except Exception as e:
+        # try:
+            # payload = jwt.decode(token, SUPABASE_JWT_SECRET, algorithms=['HS256'], audience='authenticated')
+            # user_id = payload.get('sub')
+            # user_email = payload.get('email')
+        # except Exception as e:
             return jsonify({'status': 'error', 'message': f'Invalid token: {str(e)}'}), 401
 
-        return f(user_id, user_email, *args, **kwargs)
+        # return f(user_id, user_email, *args, **kwargs)
     return decorated
 
 #database testing route

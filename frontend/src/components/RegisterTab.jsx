@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { User, Mail, Lock, UserPlus, Phone, Sprout } from 'lucide-react';
-import { supabase } from '../supabaseClient';
+import { auth, db } from "../firebase/firebase";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 export default function RegisterTab({ setActiveTab, darkMode }) {
   const [fullName, setFullName] = useState('');
@@ -12,29 +14,55 @@ export default function RegisterTab({ setActiveTab, darkMode }) {
   const [error, setError] = useState('');
 
   const handleRegisterSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
 
-    const { data, error: authError } = await supabase.auth.signUp({
+  e.preventDefault();
+
+  setLoading(true);
+
+  setError("");
+
+  try {
+
+    const userCredential =
+      await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+    const user = userCredential.user;
+
+    await setDoc(doc(db, "users", user.uid), {
+
+      uid: user.uid,
+
+      fullName,
+
       email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
-          phone: phone,
-          role: role
-        }
-      }
+
+      phone,
+
+      role,
+
+      createdAt: serverTimestamp(),
+
     });
 
-    if (authError) {
-      setError(authError.message);
-      setLoading(false);
-    } else {
-      setActiveTab('form');
-    }
-  };
+    alert("Registration Successful!");
+
+    setActiveTab("form");
+
+  }catch (error) {
+  console.error("Firebase Error:", error);
+  console.error("Error Code:", error.code);
+  console.error("Error Message:", error.message);
+
+  setError(error.message);
+}
+
+  setLoading(false);
+
+};
 
   return (
     <div className="animate-fade" style={{ width: '100%', maxWidth: '480px', padding: '1rem 0' }}>
