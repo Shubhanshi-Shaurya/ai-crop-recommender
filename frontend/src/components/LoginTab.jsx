@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, Lock, LogIn, ShieldCheck } from 'lucide-react';
-import { supabase } from '../supabaseClient';
+import { auth } from "../firebase/firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 export default function LoginTab({ setActiveTab, darkMode }) {
   const [email, setEmail] = useState('');
@@ -8,24 +9,25 @@ export default function LoginTab({ setActiveTab, darkMode }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleLoginSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+ const handleLoginSubmit = async (e) => {
+  e.preventDefault();
 
-    const { data, error: authError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+  setLoading(true);
+  setError("");
 
-    if (authError) {
-      setError(authError.message);
-      setLoading(false);
-    } else {
-      setActiveTab('form');
-    }
-  };
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
 
+    alert("Login Successful!");
+
+    setActiveTab("form");
+
+  } catch (error) {
+    setError(error.message);
+  }
+
+  setLoading(false);
+};
   return (
     <div className="animate-fade" style={{ width: '100%', maxWidth: '440px', padding: '1rem 0' }}>
       <div style={{ backgroundColor: darkMode ? '#0f172a' : '#ffffff', border: '1px solid var(--border)', borderRadius: '24px', padding: '2.5rem 2rem', boxShadow: 'var(--shadow)' }}>

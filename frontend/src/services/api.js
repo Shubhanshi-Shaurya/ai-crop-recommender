@@ -1,5 +1,5 @@
 const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-import { supabase } from '../supabaseClient';
+// import { supabase } from '../supabaseClient';
 
 /**
  * Provides language translation metadata matrices dynamically
@@ -24,7 +24,7 @@ export const recommendCrops = async (formData) => {
   const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
   
   // Get active session token and user info from Supabase
-  const { data: { session } } = await supabase.auth.getSession();
+  // const { data: { session } } = await supabase.auth.getSession();
   const token = session?.access_token;
   const user = session?.user;
 

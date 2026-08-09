@@ -7,7 +7,7 @@ class RecommendationLog(db.Model):
     __tablename__ = 'recommendation_logs'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(255), nullable=True)     # Stores Supabase User ID (UUID)
+    # user_id = db.Column(db.String(255), nullable=True)     # Stores Supabase User ID (UUID)
     user_email = db.Column(db.String(255), nullable=True)  
     latitude = db.Column(db.Float, nullable=False)
     longitude = db.Column(db.Float, nullable=False)
