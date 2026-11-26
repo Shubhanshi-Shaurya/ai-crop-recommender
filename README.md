@@ -52,4 +52,21 @@ crop_recommender/
     │   └── App.css                  
     ├── .env                         
     ├── package.json                
-    └── vite.config.js               
+    └── vite.config.js      
+```
+
+---
+
+## Tech Stack
+
+| Layer | Technologies |
+| :--- | :--- |
+| **Frontend** | React.js 18, Vite, Modern CSS (Dark/Light Mode), Lucide Icons |
+| **Backend API** | Python 3.10+, Flask, Flask-Blueprints, Flask-CORS |
+| **Machine Learning** | XGBoost, Scikit-Learn, Pandas, NumPy, Joblib |
+| **Database & ORM** | PostgreSQL, Flask-SQLAlchemy, Psycopg2 |
+| **Authentication** | Supabase Auth, PyJWT |
+| **External APIs** | OpenWeatherMap API, Sarvam AI Translate API (`sarvam-translate:v1`) |
+
+---
+
