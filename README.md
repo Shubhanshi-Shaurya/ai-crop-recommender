@@ -65,7 +65,7 @@ crop_recommender/
 | **Backend API** | Python 3.10+, Flask, Flask-Blueprints, Flask-CORS |
 | **Machine Learning** | XGBoost, Scikit-Learn, Pandas, NumPy, Joblib |
 | **Database & ORM** | PostgreSQL, Flask-SQLAlchemy, Psycopg2 |
-| **Authentication** | Supabase Auth, PyJWT |
+| **Authentication** | Firebase Auth, PyJWT |
 | **External APIs** | OpenWeatherMap API, Sarvam AI Translate API (`sarvam-translate:v1`) |
 
 ---
